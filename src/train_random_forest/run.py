@@ -9,6 +9,7 @@ import shutil
 import matplotlib.pyplot as plt
 
 import mlflow
+from mlflow.models import infer_signature
 import json
 
 import pandas as pd
@@ -90,13 +91,29 @@ def go(args):
     # Save model package in the MLFlow sklearn format
     if os.path.exists("random_forest_dir"):
         shutil.rmtree("random_forest_dir")
-    mlflow.sklearn.save_model("random_forest_dir")
+    export_path = "random_forest_dir"
+    signature = infer_signature(X_val, y_pred)
+    mlflow.sklearn.save_model(
+      sk_pipe,  # our pipeline
+      export_path,  # Path to a directory for the produced package
+      signature=signature, # input and output schema
+      input_example=X_train.iloc[:5]  # the first few examples
+    )
     ######################################
     # Save the sk_pipe pipeline as a mlflow.sklearn model in the directory "random_forest_dir"
     # HINT: use mlflow.sklearn.save_model
     # YOUR CODE HERE
     ######################################
-
+    artifact = wandb.Artifact(
+     args.output_artifact,
+     type="model_export",
+     description="trained model",
+     metadata=rf_config,
+    )
+    
+    logger.info("Logging artifact")
+    artifact.add_dir("random_forest_dir")
+    run.log_artifact(artifact)
     ######################################
     # Upload the model we just exported to W&B
     # HINT: use wandb.Artifact to create an artifact. Use args.output_artifact as artifact name, "model_export" as
@@ -112,6 +129,7 @@ def go(args):
     ######################################
     # Here we save r_squared under the "r2" key
     run.summary['r2'] = r_squared
+    run.summary['mae'] = mae
     # Now log the variable "mae" under the key "mae".
     # YOUR CODE HERE
     ######################################
