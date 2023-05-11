@@ -50,7 +50,10 @@ def go(args):
 
     # Fix the random seed for the Random Forest, so we get reproducible results
     rf_config['random_state'] = args.random_seed
-
+    
+    logger.info("Downloading artifact")
+    artifact_local_path = run.use_artifact(args.input_artifact).file()
+    df = pd.read_csv(artifact_local_path)
     ######################################
     # Use run.use_artifact(...).file() to get the train and validation artifact (args.trainval_artifact)
     # and save the returned path in train_local_pat
