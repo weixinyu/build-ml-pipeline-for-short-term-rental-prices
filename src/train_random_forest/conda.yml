@@ -1,6 +1,5 @@
 name: basic_cleaning
 channels:
-  - conda-forge
   - defaults
 dependencies:
   - pandas=1.1.4
